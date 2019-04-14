@@ -3,12 +3,14 @@ package first
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.features.CallLogging
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.auth.basic.BasicAuth
+import io.ktor.client.features.logging.LogLevel
+import io.ktor.client.features.logging.Logging
+import io.ktor.client.request.get
 import io.ktor.features.DefaultHeaders
 import io.ktor.http.ContentType
-import io.ktor.request.ApplicationRequest
-import io.ktor.request.httpMethod
-import io.ktor.request.uri
 import io.ktor.response.ApplicationResponse
 import io.ktor.response.respondText
 import io.ktor.routing.Routing
@@ -20,15 +22,22 @@ private val logger = LoggerFactory.getLogger("module")
 fun Application.module() {
     install(DefaultHeaders)
     install(ExampleFeature)
+    val client = HttpClient(Apache){
+        install(BasicAuth) {
+            username = "alice"
+            password = "password"
+        }
+        install(Logging) {
+            level = LogLevel.HEADERS
+        }
+    }
     install(Routing) {
         get("/") {
             logger.info("route '/")
-            val request : ApplicationRequest = call.request
-            val method = request.httpMethod
-            val uri = request.uri // will not be the absolute URI
             val response : ApplicationResponse = call.response
             response.headers.append("My-Header", "My-Value")
-            call.respondText("Request with method=${method.value}, URI=$uri", ContentType.Text.Plain)
+            val echoString = client.get<String>("https://httpbin.org/get")
+            call.respondText(echoString, ContentType.Text.Plain)
         }
     }
 }

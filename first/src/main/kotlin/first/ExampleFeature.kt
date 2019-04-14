@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.httpMethod
 import io.ktor.request.uri
 import io.ktor.util.AttributeKey
@@ -102,6 +103,13 @@ class ExampleFeature(config: Configuration) {
     private suspend fun interceptFeatures(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
         logger.info("interceptFeatures/start: method=${request.httpMethod.value}, uri=${request.uri}")
+        if(request.queryParameters.contains("finish")) {
+            val response = pipelineContext.context.response
+            response.status(HttpStatusCode.BadRequest)
+            logger.info("interceptFeatures/start: finishing")
+            pipelineContext.finish()
+            return
+        }
         pipelineContext.proceed()
         val response = pipelineContext.context.response
         logger.info("interceptFeatures/end: method=${request.httpMethod.value}, uri=${request.uri}, " +
@@ -140,6 +148,16 @@ class ExampleFeature(config: Configuration) {
      * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/end: method=GET, uri=/, status=200 OK
      * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/end: method=GET, uri=/, status=200 OK
      * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/end: method=GET, uri=/, status=200 OK
+     */
+
+    /*
+     * Result with early finish:
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/start: method=GET, uri=/?finish
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/start: method=GET, uri=/?finish
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/start: method=GET, uri=/?finish
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/start: finishing
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/end: method=GET, uri=/?finish, status=400 Bad Request
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/end: method=GET, uri=/?finish, status=400 Bad Request
      */
 
 }

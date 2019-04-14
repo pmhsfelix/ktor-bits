@@ -80,40 +80,66 @@ class ExampleFeature(config: Configuration) {
     /*
      * Interceptor methods
      */
-    private fun interceptSetup(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+    private suspend fun interceptSetup(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
-        logger.info("interceptSetup: method=${request.httpMethod.value}, uri=${request.uri}")
+        logger.info("interceptSetup/start: method=${request.httpMethod.value}, uri=${request.uri}")
+        pipelineContext.proceed()
+        val response = pipelineContext.context.response
+        logger.info("interceptSetup/end: method=${request.httpMethod.value}, uri=${request.uri}, " +
+                "status=${response.status()}")
+
     }
 
-    private fun interceptMonitoring(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+    private suspend fun interceptMonitoring(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
-        logger.info("interceptMonitoring: method=${request.httpMethod.value}, uri=${request.uri}")
+        logger.info("interceptMonitoring/start: method=${request.httpMethod.value}, uri=${request.uri}")
+        pipelineContext.proceed()
+        val response = pipelineContext.context.response
+        logger.info("interceptMonitoring/end: method=${request.httpMethod.value}, uri=${request.uri}, " +
+                "status=${response.status()}")
     }
 
-    private fun interceptFeatures(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+    private suspend fun interceptFeatures(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
-        logger.info("interceptFeatures: method=${request.httpMethod.value}, uri=${request.uri}")
+        logger.info("interceptFeatures/start: method=${request.httpMethod.value}, uri=${request.uri}")
+        pipelineContext.proceed()
+        val response = pipelineContext.context.response
+        logger.info("interceptFeatures/end: method=${request.httpMethod.value}, uri=${request.uri}, " +
+                "status=${response.status()}")
     }
 
-    private fun interceptCall(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+    private suspend fun interceptCall(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
-        logger.info("interceptCall: method=${request.httpMethod.value}, uri=${request.uri}")
+        logger.info("interceptCall/start: method=${request.httpMethod.value}, uri=${request.uri}")
+        pipelineContext.proceed()
+        val response = pipelineContext.context.response
+        logger.info("interceptCall/end: method=${request.httpMethod.value}, uri=${request.uri}, " +
+                "status=${response.status()}")
     }
 
-    private fun interceptFallback(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+    private suspend fun interceptFallback(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
-        logger.info("interceptFallback: method=${request.httpMethod.value}, uri=${request.uri}")
+        logger.info("interceptFallback/start: method=${request.httpMethod.value}, uri=${request.uri}")
+        pipelineContext.proceed()
+        val response = pipelineContext.context.response
+        logger.info("interceptFallback/end: method=${request.httpMethod.value}, uri=${request.uri}, " +
+                "status=${response.status()}")
     }
 
     /*
      * Result:
      *
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptCall: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptCall/start: method=GET, uri=/
      * [nettyCallPool-4-1] INFO module - route '/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFallback: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFallback/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFallback/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptCall/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/end: method=GET, uri=/, status=200 OK
      */
 
 }

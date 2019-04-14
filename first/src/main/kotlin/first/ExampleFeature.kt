@@ -53,8 +53,24 @@ class ExampleFeature(config: Configuration) {
             val mutableConfiguration = Configuration().apply(configure)
             val feature = ExampleFeature(mutableConfiguration)
 
+            pipeline.intercept(ApplicationCallPipeline.Setup) {
+                feature.interceptSetup(this)
+            }
+
+            pipeline.intercept(ApplicationCallPipeline.Monitoring) {
+                feature.interceptMonitoring(this)
+            }
+
+            pipeline.intercept(ApplicationCallPipeline.Features) {
+                feature.interceptFeatures(this)
+            }
+
             pipeline.intercept(ApplicationCallPipeline.Call) {
                 feature.interceptCall(this)
+            }
+
+            pipeline.intercept(ApplicationCallPipeline.Fallback) {
+                feature.interceptFallback(this)
             }
 
             return feature
@@ -62,11 +78,42 @@ class ExampleFeature(config: Configuration) {
     }
 
     /*
-     * This method intercepts the `Call` phase
+     * Interceptor methods
      */
+    private fun interceptSetup(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+        val request = pipelineContext.context.request
+        logger.info("interceptSetup: method=${request.httpMethod.value}, uri=${request.uri}")
+    }
+
+    private fun interceptMonitoring(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+        val request = pipelineContext.context.request
+        logger.info("interceptMonitoring: method=${request.httpMethod.value}, uri=${request.uri}")
+    }
+
+    private fun interceptFeatures(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+        val request = pipelineContext.context.request
+        logger.info("interceptFeatures: method=${request.httpMethod.value}, uri=${request.uri}")
+    }
+
     private fun interceptCall(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
         val request = pipelineContext.context.request
         logger.info("interceptCall: method=${request.httpMethod.value}, uri=${request.uri}")
     }
+
+    private fun interceptFallback(pipelineContext: PipelineContext<Unit, ApplicationCall>) {
+        val request = pipelineContext.context.request
+        logger.info("interceptFallback: method=${request.httpMethod.value}, uri=${request.uri}")
+    }
+
+    /*
+     * Result:
+     *
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptCall: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO module - route '/
+     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFallback: method=GET, uri=/
+     */
 
 }

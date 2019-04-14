@@ -12,11 +12,16 @@ import io.ktor.response.ApplicationResponse
 import io.ktor.response.respondText
 import io.ktor.routing.Routing
 import io.ktor.routing.get
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("module")
 
 fun Application.module() {
     install(DefaultHeaders)
+    install(ExampleFeature)
     install(Routing) {
         get("/") {
+            logger.info("route '/")
             val request : ApplicationRequest = call.request
             val method = request.httpMethod
             val uri = request.uri // will not be the absolute URI

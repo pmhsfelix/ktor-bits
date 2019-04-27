@@ -26,6 +26,10 @@ fun Application.module() {
             username = "alice"
             password = "password"
         }
+        install(ExampleHttpClientFeature) {
+            headerName = "My-Header"
+            headerValue = "My-Value"
+        }
     }
     install(Routing) {
         get("/foo") {

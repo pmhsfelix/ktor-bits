@@ -1,6 +1,5 @@
 package first
 
-import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
@@ -11,12 +10,12 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(ExampleFeature::class.java)
+private val logger = LoggerFactory.getLogger(ExampleApplicationCallFeature::class.java)
 
 /*
  * A feature is a class receiving a `Configuration` object
  */
-class ExampleFeature(config: Configuration) {
+class ExampleApplicationCallFeature(config: Configuration) {
 
     /*
      * Where the `Configuration` can be defined as inner class
@@ -40,9 +39,9 @@ class ExampleFeature(config: Configuration) {
      * A feature needs a companion object, since the feature name class will be used on `install`.
      * This object implements the `ApplicationFeature` interface...
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, ExampleFeature> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ExampleApplicationCallFeature> {
 
-        override val key = AttributeKey<ExampleFeature>("ExampleFeature")
+        override val key = AttributeKey<ExampleApplicationCallFeature>("ExampleApplicationCallFeature")
 
         /*
          * ... which has an install method that
@@ -50,9 +49,9 @@ class ExampleFeature(config: Configuration) {
          * - Creates the feature instance.
          * - Uses the feature instance to install interceptors into the pipeline.
          */
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): ExampleFeature {
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ExampleApplicationCallFeature {
             val mutableConfiguration = Configuration().apply(configure)
-            val feature = ExampleFeature(mutableConfiguration)
+            val feature = ExampleApplicationCallFeature(mutableConfiguration)
 
             pipeline.intercept(ApplicationCallPipeline.Setup) {
                 feature.interceptSetup(this)
@@ -137,27 +136,27 @@ class ExampleFeature(config: Configuration) {
     /*
      * Result:
      *
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/start: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/start: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/start: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptCall/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptSetup/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptMonitoring/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptFeatures/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptCall/start: method=GET, uri=/
      * [nettyCallPool-4-1] INFO module - route '/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFallback/start: method=GET, uri=/
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFallback/end: method=GET, uri=/, status=200 OK
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptCall/end: method=GET, uri=/, status=200 OK
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/end: method=GET, uri=/, status=200 OK
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/end: method=GET, uri=/, status=200 OK
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptFallback/start: method=GET, uri=/
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptFallback/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptCall/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptFeatures/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptMonitoring/end: method=GET, uri=/, status=200 OK
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptSetup/end: method=GET, uri=/, status=200 OK
      */
 
     /*
      * Result with early finish:
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/start: method=GET, uri=/?finish
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/start: method=GET, uri=/?finish
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/start: method=GET, uri=/?finish
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptFeatures/start: finishing
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptMonitoring/end: method=GET, uri=/?finish, status=400 Bad Request
-     * [nettyCallPool-4-1] INFO first.ExampleFeature - interceptSetup/end: method=GET, uri=/?finish, status=400 Bad Request
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptSetup/start: method=GET, uri=/?finish
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptMonitoring/start: method=GET, uri=/?finish
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptFeatures/start: method=GET, uri=/?finish
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptFeatures/start: finishing
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptMonitoring/end: method=GET, uri=/?finish, status=400 Bad Request
+     * [nettyCallPool-4-1] INFO first.ExampleApplicationCallFeature - interceptSetup/end: method=GET, uri=/?finish, status=400 Bad Request
      */
 
 }

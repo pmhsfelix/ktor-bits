@@ -2,8 +2,17 @@ package first
 
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpClientFeature
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
+import io.ktor.client.request.HttpSendPipeline
+import io.ktor.client.response.HttpReceivePipeline
+import io.ktor.client.response.HttpResponsePipeline
 import io.ktor.util.AttributeKey
+import io.ktor.util.pipeline.Pipeline
+import io.ktor.util.pipeline.PipelinePhase
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(ExampleHttpClientFeature::class.java)
 
 /*
  * Example [HttpClientFeature] that adds a request header.
@@ -46,6 +55,47 @@ class ExampleHttpClientFeature(config: Configuration) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
                 context.headers.append(feature.headerName, feature.headerValue)
             }
+
+            // Request pipeline
+            scope.requestPipeline.show(HttpRequestPipeline.Before)
+            scope.requestPipeline.show(HttpRequestPipeline.State)
+            scope.requestPipeline.show(HttpRequestPipeline.Transform)
+            scope.requestPipeline.show(HttpRequestPipeline.Render)
+            scope.requestPipeline.show(HttpRequestPipeline.Send)
+
+            // Send pipeline
+            scope.sendPipeline.show(HttpSendPipeline.Before)
+            scope.sendPipeline.show(HttpSendPipeline.State)
+            scope.sendPipeline.show(HttpSendPipeline.Engine)
+
+            // Receive pipeline
+            scope.receivePipeline.show(HttpReceivePipeline.Before)
+            scope.receivePipeline.show(HttpReceivePipeline.State)
+            scope.receivePipeline.show(HttpReceivePipeline.After)
+
+            // Response pipeline
+            scope.responsePipeline.show(HttpResponsePipeline.Receive)
+            scope.responsePipeline.show(HttpResponsePipeline.Parse)
+            scope.responsePipeline.show(HttpResponsePipeline.Transform)
+            scope.responsePipeline.show(HttpResponsePipeline.State)
+            scope.responsePipeline.show(HttpResponsePipeline.After)
         }
+    }
+
+}
+
+private fun <S : Any, C : Any> Pipeline<S, C>.show(phase: PipelinePhase) {
+    val pipeline = this
+    intercept(phase) {
+        logger.info(
+            "Before {}, {}, subject={}, context={}",
+            pipeline::class.java.simpleName, phase, subject::class.java.simpleName, context::class.java.simpleName
+        )
+        proceed()
+        logger.info(
+            "After {}, {}, subject={}, context={}",
+            pipeline::class.java.simpleName, phase, subject::class.java.simpleName, context::class.java.simpleName
+        )
+
     }
 }

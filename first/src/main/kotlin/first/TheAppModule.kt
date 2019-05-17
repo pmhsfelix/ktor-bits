@@ -37,7 +37,7 @@ fun Application.module() {
             logger.info("route '/foo")
             val response: ApplicationResponse = call.response
             response.headers.append("My-Header", "My-Value")
-            val echoString = client.get<String>("https://httpbin.org/get")
+            val echoString = client.get<String>("https://httpbin.org/delay/5")
             call.respondText(echoString, ContentType.Text.Plain)
         }
         route("/bar", HttpMethod.Get) {

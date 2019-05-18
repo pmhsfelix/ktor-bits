@@ -13,7 +13,7 @@ typealias TheContext = MutableList<String>
 class PipelineTests {
 
     @Test
-    fun `what is a pipeline?` () {
+    fun `what is a pipeline?`() {
         runBlocking {
 
             // A pipeline is typed by
@@ -34,7 +34,7 @@ class PipelineTests {
     private val input: TheSubject = "the input"
 
     @Test
-    fun `a pipeline is composed by phases with interceptors` () {
+    fun `a pipeline is composed by phases with interceptors`() {
         runBlocking {
 
             val phase0 = PipelinePhase("phase0")
@@ -67,7 +67,7 @@ class PipelineTests {
     private val pipeline = Pipeline<TheSubject, TheContext>(phase0, phase1)
 
     @Test
-    fun `interceptor ordering` () {
+    fun `interceptor ordering`() {
         runBlocking {
             // The interceptors are run sorted by phases
             pipeline.intercept(phase1) {
@@ -92,7 +92,7 @@ class PipelineTests {
     }
 
     @Test
-    fun `each interceptor can change the value passed on to the next interceptor` () {
+    fun `each interceptor can change the value passed on to the next interceptor`() {
         runBlocking {
 
             pipeline.intercept(phase0) {
@@ -110,7 +110,7 @@ class PipelineTests {
     }
 
     @Test
-    fun `the proceed method returns the pipeline end result` () {
+    fun `the proceed method returns the pipeline end result`() {
         runBlocking {
 
             pipeline.intercept(phase0) {
@@ -131,7 +131,7 @@ class PipelineTests {
     }
 
     @Test
-    fun `an interceptor can terminate the pipeline execution` () {
+    fun `an interceptor can terminate the pipeline execution`() {
         runBlocking {
 
             pipeline.intercept(phase0) {
@@ -149,7 +149,7 @@ class PipelineTests {
     }
 
     @Test
-    fun `an interceptor can run code after the proceed returns` () {
+    fun `an interceptor can run code after the proceed returns`() {
         runBlocking {
 
             pipeline.intercept(phase0) {
@@ -179,6 +179,50 @@ class PipelineTests {
                 "end first interceptor"
             )
             assertEquals(expectedContext, context);
+        }
+    }
+
+    @Test
+    fun `apparently, proceed can be called multiple times, however interceptors run only once?`() {
+        runBlocking {
+            pipeline.intercept(phase0) {
+                try {
+                    proceed()
+                } catch (e: Exception) {
+                    proceedWith(e.message!!)
+                }
+            }
+            pipeline.intercept(phase1) {
+                throw Exception("error on second interceptor")
+            }
+            pipeline.intercept(phase1) {
+                proceedWith(subject.toUpperCase())
+            }
+
+            assertEquals("ERROR ON SECOND INTERCEPTOR", pipeline.execute(context, "input"))
+        }
+    }
+
+    @Test
+    fun `retry will not run subsequent failed interceptors again?`() {
+        runBlocking {
+            pipeline.intercept(phase0) {
+                println(proceed())
+            }
+            pipeline.intercept(phase0) {
+                proceedWith("a")
+                proceedWith("b")
+                proceedWith("c")
+            }
+            pipeline.intercept(phase1) {
+                context.add("second interceptor called with $subject")
+            }
+            val result = pipeline.execute(context, "input")
+            assertEquals("c", result)
+            val expectedContext = listOf(
+                "second interceptor called with a"
+            )
+            assertEquals(expectedContext, context)
         }
     }
 }
